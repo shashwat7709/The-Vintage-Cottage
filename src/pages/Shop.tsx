@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { useNotifications } from '../context/NotificationContext';
+import ProductCard from '../components/ProductCard';
 import SellItemForm from '../components/SellItemForm';
 import NotificationIcon from '../components/NotificationIcon';
 import PaymentModal from '../components/PaymentModal';
 import Cart from '../components/Cart';
+import StoreLocation from '../components/StoreLocation';
 
 const Shop: React.FC = () => {
   const { products, categories, addSubmission } = useProducts();
@@ -37,13 +39,17 @@ const Shop: React.FC = () => {
     addSubmission(submission);
     setShowSellForm(false);
     addNotification('Thank you for submitting your item! We will review it and get back to you soon.', 'success', false);
-    // Add notification for admin
     addNotification(`New antique submission received: "${submission.title}"`, 'info', true);
   };
 
   const handleAddToCart = (product: { id: string; title: string; price: number; image: string }) => {
     addToCart(product);
     addNotification(`${product.title} added to cart!`, 'success', false);
+  };
+
+  const handleBuyNow = (product: { id: string; title: string; price: number }) => {
+    setSelectedProduct(product);
+    setShowPaymentModal(true);
   };
 
   const handleCheckout = () => {
@@ -63,9 +69,9 @@ const Shop: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F1EA] py-12">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-[#F5F1EA]">
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex justify-between items-center mb-12">
           <h1 className="text-4xl font-serif text-[#46392d]">
             Shop Our Collection
           </h1>
@@ -94,7 +100,7 @@ const Shop: React.FC = () => {
         </div>
 
         {/* Category Filter */}
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-16">
           <div className="flex flex-wrap gap-4 justify-center">
             {categories.map((category) => (
               <button
@@ -113,54 +119,23 @@ const Shop: React.FC = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredProducts.map((product) => (
-            <motion.div
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12 mb-24">
+          {filteredProducts.map(product => (
+            <ProductCard
               key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-lg shadow-md overflow-hidden group"
-            >
-              <div className="relative overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-serif text-[#46392d] mb-2">{product.title}</h3>
-                <p className="text-[#46392d]/70 mb-4">{product.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-xl font-medium text-[#46392d]">
-                    ${product.price}
-                  </span>
-                  <div className="space-x-2">
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      className="bg-gray-100 text-[#46392d] px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
-                    >
-                      Add to Cart
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setShowPaymentModal(true);
-                      }}
-                      className="bg-[#46392d] text-white px-4 py-2 rounded-md hover:bg-[#5c4b3d] transition-colors"
-                    >
-                      Buy Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+              {...product}
+              onAddToCart={() => handleAddToCart(product)}
+              onBuyNow={() => handleBuyNow(product)}
+            />
           ))}
         </div>
 
-        {/* Sell Modal */}
+        {/* Store Location */}
+        <div className="mt-24">
+          <StoreLocation />
+        </div>
+
+        {/* Modals */}
         {showSellForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-[#F5F1EA] p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -178,13 +153,15 @@ const Shop: React.FC = () => {
           </div>
         )}
 
+        {/* Cart */}
         <Cart
           isOpen={showCart}
           onClose={() => setShowCart(false)}
           onCheckout={handleCheckout}
         />
 
-        {(selectedProduct || isCartCheckout) && (
+        {/* Payment Modal */}
+        {showPaymentModal && (
           <PaymentModal
             isOpen={showPaymentModal}
             onClose={() => {

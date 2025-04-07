@@ -3,36 +3,61 @@ import { useProducts } from '../context/ProductContext';
 import ImageUploader from './ImageUploader';
 
 interface SellItemFormProps {
-  onSubmit: (formData: FormData) => void;
+  onSubmit: (formData: {
+    name: string;
+    email: string;
+    title: string;
+    description: string;
+    address: string;
+    phone: string;
+    price: string;
+    currency: string;
+    images?: FileList;
+  }) => void;
 }
 
 const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
   const { categories } = useProducts();
   const [formData, setFormData] = useState({
+    name: '',
+    email: '',
     title: '',
     description: '',
-    price: '',
-    category: '',
-    images: [] as string[],
     address: '',
+    phone: '',
+    price: '',
   });
   const [phoneCode, setPhoneCode] = useState('+1');
+  const [currency, setCurrency] = useState('INR');
   const [error, setError] = useState('');
 
   const countryCodes = [
-    { code: '+1', country: 'USA/Canada' },
-    { code: '+44', country: 'UK' },
-    { code: '+61', country: 'Australia' },
-    { code: '+91', country: 'India' },
-    { code: '+86', country: 'China' },
-    { code: '+81', country: 'Japan' },
-    { code: '+49', country: 'Germany' },
-    { code: '+33', country: 'France' },
+    { code: '+1', country: 'USA/Canada', currency: 'USD' },
+    { code: '+44', country: 'UK', currency: 'GBP' },
+    { code: '+61', country: 'Australia', currency: 'AUD' },
+    { code: '+91', country: 'India', currency: 'INR' },
+    { code: '+86', country: 'China', currency: 'CNY' },
+    { code: '+81', country: 'Japan', currency: 'JPY' },
+    { code: '+49', country: 'Germany', currency: 'EUR' },
+    { code: '+33', country: 'France', currency: 'EUR' },
   ];
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const currencySymbols: { [key: string]: string } = {
+    USD: '$',
+    GBP: '£',
+    AUD: 'A$',
+    INR: '₹',
+    CNY: '¥',
+    JPY: '¥',
+    EUR: '€'
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
     setError(''); // Clear error when user makes changes
   };
 
@@ -64,14 +89,6 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
       setError('Please enter a valid price');
       return false;
     }
-    if (!formData.category) {
-      setError('Please select a category');
-      return false;
-    }
-    if (formData.images.length === 0) {
-      setError('Please upload at least one image');
-      return false;
-    }
     if (!formData.address.trim()) {
       setError('Please enter your address');
       return false;
@@ -79,7 +96,17 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handlePhoneCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCode = e.target.value;
+    setPhoneCode(selectedCode);
+    // Automatically update currency based on selected country
+    const selectedCountry = countryCodes.find(country => country.code === selectedCode);
+    if (selectedCountry) {
+      setCurrency(selectedCountry.currency);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -87,11 +114,12 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
     }
 
     const submitFormData = new FormData();
+    submitFormData.append('name', formData.name);
+    submitFormData.append('email', formData.email);
     submitFormData.append('title', formData.title);
     submitFormData.append('description', formData.description);
     submitFormData.append('price', formData.price);
-    submitFormData.append('category', formData.category);
-    submitFormData.append('images', JSON.stringify(formData.images));
+    submitFormData.append('currency', currency);
     submitFormData.append('address', formData.address);
     
     const phoneInput = e.currentTarget.elements.namedItem('phone') as HTMLInputElement;
@@ -99,7 +127,7 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
       submitFormData.append('phone', `${phoneCode}${phoneInput.value}`);
     }
 
-    onSubmit(submitFormData);
+    onSubmit({ ...formData, currency });
   };
 
   return (
@@ -111,7 +139,39 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
       )}
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-[#46392d] mb-1">
+        <label htmlFor="name" className="block text-[#46392d] mb-2">
+          Your Name
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          placeholder="Enter your full name"
+          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
+          required
+        />
+      </div>
+
+      <div>
+        <label htmlFor="email" className="block text-[#46392d] mb-2">
+          Email Address
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Enter your email address"
+          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
+          required
+        />
+      </div>
+
+      <div>
+        <label htmlFor="title" className="block text-[#46392d] mb-2">
           Item Title
         </label>
         <input
@@ -120,14 +180,14 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
           name="title"
           value={formData.title}
           onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-[#46392d]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] bg-white"
           placeholder="Enter the title of your antique item"
+          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
+          required
         />
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-[#46392d] mb-1">
+        <label htmlFor="description" className="block text-[#46392d] mb-2">
           Description
         </label>
         <textarea
@@ -135,15 +195,15 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
           name="description"
           value={formData.description}
           onChange={handleChange}
-          required
-          rows={4}
-          className="w-full px-3 py-2 border border-[#46392d]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] bg-white"
           placeholder="Describe your item's history, condition, and unique features"
+          rows={4}
+          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d] resize-none"
+          required
         />
       </div>
 
       <div>
-        <label htmlFor="address" className="block text-sm font-medium text-[#46392d] mb-1">
+        <label htmlFor="address" className="block text-[#46392d] mb-2">
           Address
         </label>
         <textarea
@@ -151,10 +211,10 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
           name="address"
           value={formData.address}
           onChange={handleChange}
-          required
-          rows={3}
-          className="w-full px-3 py-2 border border-[#46392d]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] bg-white"
           placeholder="Enter your complete address"
+          rows={3}
+          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d] resize-none"
+          required
         />
         <p className="text-sm text-[#46392d]/70 mt-1">
           This address will be used for item pickup/inspection if needed
@@ -162,14 +222,14 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
       </div>
 
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-[#46392d] mb-1">
+        <label htmlFor="phone" className="block text-[#46392d] mb-2">
           Contact Phone Number
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-4">
           <select
             value={phoneCode}
-            onChange={(e) => setPhoneCode(e.target.value)}
-            className="px-3 py-2 rounded-md border border-[#46392d]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[#46392d]/50"
+            onChange={handlePhoneCodeChange}
+            className="px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d] bg-white"
           >
             {countryCodes.map(({ code, country }) => (
               <option key={code} value={code}>
@@ -181,10 +241,11 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
             type="tel"
             id="phone"
             name="phone"
-            required
-            pattern="[0-9]{10}"
-            className="flex-1 px-4 py-2 rounded-md border border-[#46392d]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[#46392d]/50"
+            value={formData.phone}
+            onChange={handleChange}
             placeholder="Enter your phone number"
+            className="flex-1 px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
+            required
           />
         </div>
         <p className="text-sm text-[#46392d]/70 mt-1">
@@ -193,53 +254,43 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
       </div>
 
       <div>
-        <label htmlFor="price" className="block text-sm font-medium text-[#46392d] mb-1">
-          Asking Price ($)
+        <label htmlFor="price" className="block text-[#46392d] mb-2">
+          Asking Price
         </label>
+        <div className="flex gap-4">
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d] bg-white"
+          >
+            {Object.entries(currencySymbols).map(([code, symbol]) => (
+              <option key={code} value={code}>
+                {symbol} {code}
+              </option>
+            ))}
+          </select>
         <input
           type="number"
           id="price"
           name="price"
           value={formData.price}
           onChange={handleChange}
-          required
+            placeholder={`Enter price in ${currency}`}
           min="0"
           step="0.01"
-          className="w-full px-3 py-2 border border-[#46392d]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] bg-white"
-          placeholder="Enter your asking price"
+            className="flex-1 px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
+            required
         />
       </div>
-
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium text-[#46392d] mb-1">
-          Category
-        </label>
-        <select
-          id="category"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-[#46392d]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] bg-white"
-        >
-          <option value="">Select a category</option>
-          {categories
-            .filter(category => category !== 'All')
-            .map(category => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-        </select>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[#46392d] mb-1">
+        <label className="block text-[#46392d] mb-2">
           Item Images
         </label>
         <ImageUploader onImageSelect={handleImageSelect} />
         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {formData.images.map((image, index) => (
+          {formData.images?.length && formData.images.map((image, index) => (
             <div key={index} className="relative group">
               <img
                 src={image}
@@ -266,9 +317,9 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
 
       <button
         type="submit"
-        className="w-full py-3 px-4 bg-[#46392d] text-[#F5F1EA] rounded-md hover:bg-[#46392d]/90 transition-colors duration-300 font-serif text-lg"
+        className="w-full bg-[#46392d] text-white py-3 rounded-md hover:bg-[#5c4b3d] transition-colors font-medium"
       >
-        Submit for Review
+        Submit Item for Review
       </button>
 
       <p className="text-sm text-[#46392d]/70 text-center mt-4">

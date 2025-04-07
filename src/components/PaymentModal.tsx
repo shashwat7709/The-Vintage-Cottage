@@ -26,8 +26,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     email: ''
   });
 
+  // Convert price to INR
+  const inrPrice = Math.round(price * 83); // Using approximate conversion rate
+
   // Demo QR code URL (in a real app, this would be generated dynamically)
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=demo-payment-${productTitle}-${price}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=demo-payment-${productTitle}-${inrPrice}`;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -99,29 +102,29 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             
             <div className="mb-6">
               <h3 className="text-lg font-medium text-[#46392d]">{productTitle}</h3>
-              <p className="text-2xl font-bold text-[#46392d]">${price.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-[#46392d]">₹{inrPrice.toLocaleString('en-IN')}</p>
             </div>
 
-            <div className="flex justify-center space-x-4 mb-6">
+            <div className="flex gap-4 mb-6">
               <button
                 onClick={() => setPaymentMethod('card')}
-                className={`px-4 py-2 rounded-md transition-colors ${
+                className={`flex-1 py-2 rounded-md transition-colors ${
                   paymentMethod === 'card'
                     ? 'bg-[#46392d] text-white'
                     : 'bg-gray-100 text-[#46392d] hover:bg-gray-200'
                 }`}
               >
-                Pay with Card
+                Card Payment
               </button>
               <button
                 onClick={() => setPaymentMethod('qr')}
-                className={`px-4 py-2 rounded-md transition-colors ${
+                className={`flex-1 py-2 rounded-md transition-colors ${
                   paymentMethod === 'qr'
                     ? 'bg-[#46392d] text-white'
                     : 'bg-gray-100 text-[#46392d] hover:bg-gray-200'
                 }`}
               >
-                Pay with QR
+                QR Payment
               </button>
             </div>
 
@@ -135,11 +138,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     value={formData.cardNumber}
                     onChange={handleInputChange}
                     placeholder="1234 5678 9012 3456"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
                     required
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
                   <input
@@ -148,11 +150,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     value={formData.cardName}
                     onChange={handleInputChange}
                     placeholder="John Doe"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
                     required
                   />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
@@ -162,78 +163,46 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       value={formData.expiryDate}
                       onChange={handleInputChange}
                       placeholder="MM/YY"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
                       required
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
                     <input
-                      type="text"
+                      type="password"
                       name="cvv"
                       value={formData.cvv}
                       onChange={handleInputChange}
                       placeholder="123"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
                       required
                     />
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="your@email.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Address</label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    placeholder="123 Main St, City, Country"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d]"
-                    required
-                  />
-                </div>
-
                 <button
                   type="submit"
-                  className="w-full bg-[#46392d] text-white py-2 px-4 rounded-md hover:bg-[#5c4b3d] transition-colors"
+                  className="w-full py-2 bg-[#46392d] text-white rounded-md hover:bg-[#5c4b3d] transition-colors"
                 >
-                  Pay ${price.toFixed(2)}
+                  Pay ₹{inrPrice.toLocaleString('en-IN')}
                 </button>
               </form>
             ) : (
-              <div className="space-y-4">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="bg-white p-4 rounded-lg shadow-md">
-                    <img
-                      src={qrCodeUrl}
-                      alt="Payment QR Code"
-                      className="w-48 h-48"
-                    />
-                  </div>
-                  <p className="text-sm text-gray-600 text-center">
-                    Scan this QR code with your mobile payment app to complete the purchase
-                  </p>
-                  <button
-                    onClick={handleQRPayment}
-                    className="bg-[#46392d] text-white py-2 px-4 rounded-md hover:bg-[#5c4b3d] transition-colors"
-                  >
-                    Confirm Payment
-                  </button>
-                </div>
+              <div className="text-center">
+                <img
+                  src={qrCodeUrl}
+                  alt="Payment QR Code"
+                  className="mx-auto mb-4"
+                />
+                <p className="text-sm text-gray-600 mb-4">
+                  Scan the QR code to pay ₹{inrPrice.toLocaleString('en-IN')}
+                </p>
+                <button
+                  onClick={handleQRPayment}
+                  className="w-full py-2 bg-[#46392d] text-white rounded-md hover:bg-[#5c4b3d] transition-colors"
+                >
+                  I've completed the payment
+                </button>
               </div>
             )}
           </>
@@ -242,20 +211,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         {paymentStep === 'processing' && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#46392d] mx-auto mb-4"></div>
-            <p className="text-lg font-medium text-[#46392d]">Processing your payment...</p>
-            <p className="text-sm text-gray-500">Please don't close this window</p>
+            <p className="text-lg text-[#46392d]">Processing your payment...</p>
           </div>
         )}
 
         {paymentStep === 'complete' && (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-[#46392d] mb-2">Payment Successful!</h3>
-            <p className="text-sm text-gray-500">Thank you for your purchase</p>
+            <div className="text-green-500 text-5xl mb-4">✓</div>
+            <h3 className="text-xl font-medium text-[#46392d] mb-2">Payment Successful!</h3>
+            <p className="text-gray-600">Thank you for your purchase.</p>
           </div>
         )}
       </div>

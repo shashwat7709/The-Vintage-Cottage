@@ -1,10 +1,10 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import Subscriber from '@/lib/db/models/Subscriber';
-import { connectDB } from '@/lib/db/connection';
-import { sendEmail } from '@/lib/email';
+import { Request, Response } from 'express';
+import Subscriber from '../lib/db/models/Subscriber';
+import { connectDB } from '../lib/db/connection';
+import { sendEmail } from '../lib/email';
 import crypto from 'crypto';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: Request, res: Response) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
