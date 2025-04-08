@@ -30,7 +30,7 @@ const StoreLocation: React.FC = () => {
           <div>
             <h3 className="text-xl font-serif text-[#46392d] mb-4">Contact</h3>
             <div className="text-[#46392d]/70 leading-relaxed">
-              <p>Phone: (555) 123-4567</p>
+              <p>Phone: +91 8668945632</p>
               <p>Email: info@vintagecottage.com</p>
             </div>
           </div>

@@ -429,7 +429,12 @@ const AdminDashboard: React.FC = () => {
                   <div className="p-4">
                     <h3 className="text-lg font-serif text-[#46392d]">{product.title}</h3>
                     <p className="text-sm text-[#46392d]/70">{product.description}</p>
-                    <p className="text-[#46392d] font-medium mt-2">${product.price}</p>
+                    <p className="text-[#46392d] font-medium mt-2">
+                      ₹{product.price.toLocaleString('en-IN', {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2
+                      })}
+                    </p>
                     <p className="text-sm text-[#46392d]/70">Category: {product.category}</p>
                     <div className="mt-4 flex justify-end space-x-2">
                       <button
@@ -468,7 +473,12 @@ const AdminDashboard: React.FC = () => {
                       <div>
                         <h3 className="text-xl font-serif text-[#46392d]">{submission.title}</h3>
                         <p className="text-sm text-[#46392d]/70">{submission.description}</p>
-                        <p className="text-[#46392d] font-medium mt-2">${submission.price}</p>
+                        <p className="text-[#46392d] font-medium mt-2">
+                          ₹{submission.price.toLocaleString('en-IN', {
+                            maximumFractionDigits: 2,
+                            minimumFractionDigits: 2
+                          })}
+                        </p>
                         <p className="text-sm text-[#46392d]/70">Category: {submission.category}</p>
                         <p className="text-sm text-[#46392d]/70">Phone: {submission.phone}</p>
                         <p className="text-sm text-[#46392d]/70">Address: {submission.address}</p>
@@ -599,7 +609,10 @@ const AdminDashboard: React.FC = () => {
                             <strong>Category:</strong> {submission.category}
                           </p>
                           <p className="text-[#46392d]">
-                            <strong>Asking Price:</strong> ${submission.price}
+                            <strong>Asking Price:</strong> ₹{submission.price.toLocaleString('en-IN', {
+                              maximumFractionDigits: 2,
+                              minimumFractionDigits: 2
+                            })}
                           </p>
                           <p className="text-[#46392d]">
                             <strong>Phone:</strong> {submission.phone}

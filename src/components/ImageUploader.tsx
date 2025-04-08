@@ -1,40 +1,70 @@
 import React, { useState, useRef } from 'react';
 
 interface ImageUploaderProps {
-  onImageSelect: (base64String: string) => void;
+  onImageSelect: (base64Strings: string[]) => void;
+  maxImages?: number;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect }) => {
-  const [base64Image, setBase64Image] = useState<string>('');
+const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, maxImages = 5 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string>('');
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+    // Convert FileList to array for easier handling
+    const fileArray = Array.from(files);
+
+    // Validate file types
+    const invalidFiles = fileArray.filter(file => !file.type.startsWith('image/'));
+    if (invalidFiles.length > 0) {
+      setError('Please upload only image files');
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+    // Validate file sizes (max 5MB each)
+    const oversizedFiles = fileArray.filter(file => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      setError('Each image must be less than 5MB');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setBase64Image(base64String);
-      onImageSelect(base64String);
-    };
-    reader.readAsDataURL(file);
+    // Process each file
+    Promise.all(
+      fileArray.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+              resolve(reader.result);
+            } else {
+              reject(new Error('Failed to read file'));
+            }
+          };
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        });
+      })
+    )
+      .then(base64Strings => {
+        setError('');
+        onImageSelect(base64Strings);
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      })
+      .catch(() => {
+        setError('Failed to process one or more images');
+      });
   };
 
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="text-red-500 text-sm">{error}</div>
+      )}
       <div className="flex flex-col items-center justify-center w-full">
         <label 
           htmlFor="image-upload"
@@ -43,27 +73,21 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect }) => {
           <svg className="w-8 h-8" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
             <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
           </svg>
-          <span className="mt-2 text-base">Select an image</span>
+          <span className="mt-2 text-base">Select images</span>
+          <p className="text-sm text-gray-500 mt-1">
+            Upload up to {maxImages} images (max 5MB each)
+          </p>
         </label>
         <input
           ref={fileInputRef}
           type="file"
           id="image-upload"
           accept="image/*"
+          multiple
           onChange={handleUpload}
           className="hidden"
         />
       </div>
-
-      {base64Image && (
-        <div className="relative w-full h-64 rounded-lg overflow-hidden shadow-md">
-          <img
-            src={base64Image}
-            alt="Preview"
-            className="w-full h-full object-contain"
-          />
-        </div>
-      )}
     </div>
   );
 };

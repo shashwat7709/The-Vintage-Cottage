@@ -2,177 +2,125 @@ import React, { useState } from 'react';
 import { useProducts } from '../context/ProductContext';
 import ImageUploader from './ImageUploader';
 
-interface SellItemFormProps {
-  onSubmit: (formData: {
-    name: string;
-    email: string;
-    title: string;
-    description: string;
-    address: string;
-    phone: string;
-    price: string;
-    currency: string;
-    images?: FileList;
-  }) => void;
+interface FormData {
+  title: string;
+  description: string;
+  price: string;
+  category: string;
+  images: string[];
 }
 
-const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
+const initialFormData: FormData = {
+  title: '',
+  description: '',
+  price: '',
+  category: '',
+  images: []
+};
+
+const SellItemForm: React.FC = () => {
   const { categories } = useProducts();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    title: '',
-    description: '',
-    address: '',
-    phone: '',
-    price: '',
-  });
-  const [phoneCode, setPhoneCode] = useState('+1');
-  const [currency, setCurrency] = useState('INR');
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [error, setError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const countryCodes = [
-    { code: '+1', country: 'USA/Canada', currency: 'USD' },
-    { code: '+44', country: 'UK', currency: 'GBP' },
-    { code: '+61', country: 'Australia', currency: 'AUD' },
-    { code: '+91', country: 'India', currency: 'INR' },
-    { code: '+86', country: 'China', currency: 'CNY' },
-    { code: '+81', country: 'Japan', currency: 'JPY' },
-    { code: '+49', country: 'Germany', currency: 'EUR' },
-    { code: '+33', country: 'France', currency: 'EUR' },
-  ];
-
-  const currencySymbols: { [key: string]: string } = {
-    USD: '$',
-    GBP: '£',
-    AUD: 'A$',
-    INR: '₹',
-    CNY: '¥',
-    JPY: '¥',
-    EUR: '€'
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Special handling for price to ensure valid INR amount
+    if (name === 'price') {
+      // Remove any non-numeric characters except decimal point
+      const numericValue = value.replace(/[^0-9.]/g, '');
+      
+      // Ensure only two decimal places
+      const parts = numericValue.split('.');
+      if (parts.length > 1) {
+        parts[1] = parts[1].slice(0, 2);
+        const formattedValue = parts.join('.');
+        setFormData(prev => ({
+          ...prev,
+          [name]: formattedValue
+        }));
+        return;
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    setError(''); // Clear error when user makes changes
   };
 
-  const handleImageSelect = (base64String: string) => {
+  const handleImageSelect = (base64Strings: string[]) => {
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, base64String]
-    }));
-    setError(''); // Clear error when image is selected
-  };
-
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
+      images: base64Strings
     }));
   };
 
-  const validateForm = () => {
-    if (!formData.title.trim()) {
-      setError('Please enter a title');
-      return false;
-    }
-    if (!formData.description.trim()) {
-      setError('Please enter a description');
-      return false;
-    }
-    if (!formData.price || parseFloat(formData.price) <= 0) {
-      setError('Please enter a valid price');
-      return false;
-    }
-    if (!formData.address.trim()) {
-      setError('Please enter your address');
-      return false;
-    }
-    return true;
-  };
-
-  const handlePhoneCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCode = e.target.value;
-    setPhoneCode(selectedCode);
-    // Automatically update currency based on selected country
-    const selectedCountry = countryCodes.find(country => country.code === selectedCode);
-    if (selectedCountry) {
-      setCurrency(selectedCountry.currency);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    setError('');
+    setIsSubmitting(true);
 
-    const submitFormData = new FormData();
-    submitFormData.append('name', formData.name);
-    submitFormData.append('email', formData.email);
-    submitFormData.append('title', formData.title);
-    submitFormData.append('description', formData.description);
-    submitFormData.append('price', formData.price);
-    submitFormData.append('currency', currency);
-    submitFormData.append('address', formData.address);
-    
-    const phoneInput = e.currentTarget.elements.namedItem('phone') as HTMLInputElement;
-    if (phoneInput && phoneInput.value) {
-      submitFormData.append('phone', `${phoneCode}${phoneInput.value}`);
-    }
+    try {
+      // Validate form data
+      if (!formData.title || !formData.description || !formData.price || !formData.category) {
+        throw new Error('Please fill in all required fields');
+      }
 
-    onSubmit({ ...formData, currency });
+      // Validate price
+      const priceValue = parseFloat(formData.price);
+      if (isNaN(priceValue) || priceValue <= 0) {
+        throw new Error('Please enter a valid price amount');
+      }
+      if (priceValue > 10000000) { // 1 crore limit
+        throw new Error('Price cannot exceed ₹1,00,00,000');
+      }
+
+      if (formData.images.length === 0) {
+        throw new Error('Please upload at least one image');
+      }
+
+      // Format price to always have two decimal places for API
+      const formattedData = {
+        ...formData,
+        price: parseFloat(formData.price).toFixed(2)
+      };
+
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formattedData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit the form');
+      }
+
+      // Reset form after successful submission
+      setFormData(initialFormData);
+      alert('Product submitted successfully!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{error}</span>
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+          <p className="text-red-700">{error}</p>
         </div>
       )}
 
       <div>
-        <label htmlFor="name" className="block text-[#46392d] mb-2">
-          Your Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="Enter your full name"
-          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
-          required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="email" className="block text-[#46392d] mb-2">
-          Email Address
-        </label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="Enter your email address"
-          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
-          required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="title" className="block text-[#46392d] mb-2">
-          Item Title
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+          Title *
         </label>
         <input
           type="text"
@@ -180,151 +128,98 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
           name="title"
           value={formData.title}
           onChange={handleChange}
-          placeholder="Enter the title of your antique item"
-          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#46392d] focus:ring-[#46392d] sm:text-sm"
           required
         />
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-[#46392d] mb-2">
-          Description
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          Description *
         </label>
         <textarea
           id="description"
           name="description"
           value={formData.description}
           onChange={handleChange}
-          placeholder="Describe your item's history, condition, and unique features"
           rows={4}
-          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d] resize-none"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#46392d] focus:ring-[#46392d] sm:text-sm"
           required
         />
       </div>
 
       <div>
-        <label htmlFor="address" className="block text-[#46392d] mb-2">
-          Address
+        <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+          Price (₹) *
         </label>
-        <textarea
-          id="address"
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
-          placeholder="Enter your complete address"
-          rows={3}
-          className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d] resize-none"
-          required
-        />
-        <p className="text-sm text-[#46392d]/70 mt-1">
-          This address will be used for item pickup/inspection if needed
-        </p>
-      </div>
-
-      <div>
-        <label htmlFor="phone" className="block text-[#46392d] mb-2">
-          Contact Phone Number
-        </label>
-        <div className="flex gap-4">
-          <select
-            value={phoneCode}
-            onChange={handlePhoneCodeChange}
-            className="px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d] bg-white"
-          >
-            {countryCodes.map(({ code, country }) => (
-              <option key={code} value={code}>
-                {code} {country}
-              </option>
-            ))}
-          </select>
+        <div className="relative mt-1">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₹</span>
           <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
+            type="number"
+            id="price"
+            name="price"
+            value={formData.price}
             onChange={handleChange}
-            placeholder="Enter your phone number"
-            className="flex-1 px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#46392d] focus:ring-[#46392d] sm:text-sm"
             required
           />
         </div>
-        <p className="text-sm text-[#46392d]/70 mt-1">
-          Please enter a valid phone number without spaces or special characters
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Enter amount in Indian Rupees (₹)</p>
       </div>
 
       <div>
-        <label htmlFor="price" className="block text-[#46392d] mb-2">
-          Asking Price
+        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+          Category *
         </label>
-        <div className="flex gap-4">
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d] bg-white"
-          >
-            {Object.entries(currencySymbols).map(([code, symbol]) => (
-              <option key={code} value={code}>
-                {symbol} {code}
-              </option>
-            ))}
-          </select>
-        <input
-          type="number"
-          id="price"
-          name="price"
-          value={formData.price}
+        <select
+          id="category"
+          name="category"
+          value={formData.category}
           onChange={handleChange}
-            placeholder={`Enter price in ${currency}`}
-          min="0"
-          step="0.01"
-            className="flex-1 px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#46392d] text-[#46392d]"
-            required
-        />
-      </div>
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#46392d] focus:ring-[#46392d] sm:text-sm"
+          required
+        >
+          <option value="">Select a category</option>
+          <option value="furniture">Furniture</option>
+          <option value="jewelry">Jewelry</option>
+          <option value="art">Art</option>
+          <option value="collectibles">Collectibles</option>
+          <option value="other">Other</option>
+        </select>
       </div>
 
       <div>
-        <label className="block text-[#46392d] mb-2">
-          Item Images
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Images *
         </label>
-        <ImageUploader onImageSelect={handleImageSelect} />
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {formData.images?.length && formData.images.map((image, index) => (
-            <div key={index} className="relative group">
-              <img
-                src={image}
-                alt={`Preview ${index + 1}`}
-                className="w-full h-32 object-contain rounded-md border border-[#46392d]/20"
-              />
-              <button
-                type="button"
-                onClick={() => removeImage(index)}
-                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Remove image"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-        <p className="mt-1 text-sm text-[#46392d]/70">
-          Please provide clear, well-lit photos of your item from multiple angles
-        </p>
+        <ImageUploader onImageSelect={handleImageSelect} maxImages={5} />
+        {formData.images.length > 0 && (
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {formData.images.map((image, index) => (
+              <div key={index} className="relative aspect-square rounded-lg overflow-hidden shadow-md">
+                <img
+                  src={image}
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      <button
-        type="submit"
-        className="w-full bg-[#46392d] text-white py-3 rounded-md hover:bg-[#5c4b3d] transition-colors font-medium"
-      >
-        Submit Item for Review
-      </button>
-
-      <p className="text-sm text-[#46392d]/70 text-center mt-4">
-        Our team will review your submission and contact you within 2-3 business days.
-      </p>
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#46392d] hover:bg-[#46392d]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#46392d] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </button>
+      </div>
     </form>
   );
 };

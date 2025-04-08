@@ -138,9 +138,32 @@ const initialProducts: Product[] = [
     id: '1',
     title: 'Antique Display Cabinet',
     description: 'Elegant glass-front display cabinet, perfect for showcasing your treasured collections.',
-    price: 1200,
+    price: 85000, // Price in INR
     category: 'Vintage Furniture',
     image: '/photos/products/2023-02-05(1).jpg'
   },
-  // ... (copy all the products from AdminDashboard.tsx)
+  {
+    id: '2',
+    title: 'Victorian Era Mirror',
+    description: 'Beautifully preserved Victorian-era mirror with ornate golden frame.',
+    price: 45000, // Price in INR
+    category: 'Lighting & Mirrors',
+    image: '/photos/products/mirror-1.jpg'
+  },
+  {
+    id: '3',
+    title: 'Crystal Wine Glasses Set',
+    description: 'Set of 6 vintage crystal wine glasses with intricate etching.',
+    price: 12500, // Price in INR
+    category: 'Crystal & Glass',
+    image: '/photos/products/glasses-1.jpg'
+  },
+  {
+    id: '4',
+    title: 'Brass Wall Sconces',
+    description: 'Pair of antique brass wall sconces with patina finish.',
+    price: 18000, // Price in INR
+    category: 'Lighting & Mirrors',
+    image: '/photos/products/sconces-1.jpg'
+  }
 ]; 

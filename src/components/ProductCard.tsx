@@ -20,9 +20,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart,
   onBuyNow
 }) => {
-  // Convert price to INR (assuming price is in USD)
-  const inrPrice = Math.round(price * 83); // Using approximate conversion rate
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -45,7 +42,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="text-xl font-medium text-[#46392d]">
-            ₹{inrPrice.toLocaleString('en-IN')}
+            ₹{price.toLocaleString('en-IN', {
+              maximumFractionDigits: 2,
+              minimumFractionDigits: 2
+            })}
           </div>
           
           <div className="flex gap-2 w-full sm:w-auto">
