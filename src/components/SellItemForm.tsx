@@ -28,6 +28,18 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
     { code: '+81', country: 'Japan' },
     { code: '+49', country: 'Germany' },
     { code: '+33', country: 'France' },
+    { code: '+7', country: 'Russia' },
+    { code: '+39', country: 'Italy' },
+    { code: '+34', country: 'Spain' },
+    { code: '+55', country: 'Brazil' },
+    { code: '+52', country: 'Mexico' },
+    { code: '+82', country: 'South Korea' },
+    { code: '+65', country: 'Singapore' },
+    { code: '+971', country: 'UAE' },
+    { code: '+966', country: 'Saudi Arabia' },
+    { code: '+27', country: 'South Africa' },
+    { code: '+64', country: 'New Zealand' },
+    { code: '+31', country: 'Netherlands' }
   ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -169,10 +181,11 @@ const SellItemForm: React.FC<SellItemFormProps> = ({ onSubmit }) => {
           <select
             value={phoneCode}
             onChange={(e) => setPhoneCode(e.target.value)}
-            className="px-3 py-2 rounded-md border border-[#46392d]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[#46392d]/50"
+            className="px-3 py-2 rounded-md border border-[#46392d]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[#46392d]/50 appearance-none cursor-pointer min-w-[180px]"
+            style={{ WebkitAppearance: 'menulist' }}
           >
             {countryCodes.map(({ code, country }) => (
-              <option key={code} value={code}>
+              <option key={code} value={code} className="py-1">
                 {code} {country}
               </option>
             ))}

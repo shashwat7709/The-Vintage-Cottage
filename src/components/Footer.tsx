@@ -43,9 +43,10 @@ const Footer = () => {
           <div>
             <h3 className="font-serif text-xl mb-4">Contact Us</h3>
             <ul className="space-y-2 text-text-light/70">
-              <li>123 Heritage Lane</li>
-              <li>Vintage District, VD 12345</li>
-              <li>Phone: (555) 123-4567</li>
+              <li>Shop No 1, Sai Sagar Building</li>
+              <li>Near Kalyan Jewellers, MG Road, Camp</li>
+              <li>Pune, Maharashtra 411001</li>
+              <li>Phone: +91 98220 57567</li>
               <li>Email: info@vintagecottage.com</li>
             </ul>
           </div>

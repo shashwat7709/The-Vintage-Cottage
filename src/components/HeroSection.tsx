@@ -16,12 +16,24 @@ const HeroSection = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 mt-24 text-center">
+      <div className="relative z-10 container mx-auto px-4 mt-0 text-center">
+        <motion.div
+          className="mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <img 
+            src="/photos/logo/2021-06-21.png" 
+            alt="The Vintage Cottage Logo" 
+            className="mx-auto h-64 w-auto"
+          />
+        </motion.div>
         <motion.h1 
           className="text-4xl md:text-6xl lg:text-7xl font-display text-gold mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
         >
           The Vintage Cottage
         </motion.h1>

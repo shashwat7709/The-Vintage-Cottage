@@ -3,118 +3,84 @@ import { motion } from 'framer-motion';
 
 const AboutSection: React.FC = () => {
   return (
-    <section className="py-24 bg-[#F5F1EA] relative" id="about">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-pattern opacity-5 pointer-events-none" />
-      
+    <div className="min-h-screen bg-[#F5F1EA] py-16">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-4xl font-serif text-[#46392d] mb-4">
-              Our Story
-            </h2>
-            <div className="w-24 h-1 bg-[#46392d]/20 mx-auto mb-8" />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="grid md:grid-cols-2 gap-12 items-center"
-          >
-            <div className="space-y-6 text-[#46392d]/80">
-              <p>
-                Welcome to The Vintage Cottage, where every piece tells a story and every corner holds 
-                a treasure waiting to be discovered. Our journey began with a passion for preserving 
-                the elegance and craftsmanship of bygone eras.
-              </p>
-              <p>
-                We carefully curate our collection, seeking out unique pieces that combine historical 
-                significance with timeless beauty. From delicate crystal and vintage furniture to 
-                rare books and garden antiquities, each item in our collection has been chosen for 
-                its distinctive character and enduring appeal.
-              </p>
-              <p>
-                Our mission is to help you create spaces that reflect both history and personal style. 
-                We believe that antiques and vintage pieces add depth, character, and sophistication 
-                to any environment, making your home truly unique.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="aspect-square rounded-lg overflow-hidden shadow-lg"
-                >
-                  <img
-                    src="/photos/products/2023-02-05(1).jpg"
-                    alt="Vintage furniture display"
-                    className="w-full h-full object-cover"
-                  />
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="aspect-square rounded-lg overflow-hidden shadow-lg"
-                >
-                  <img
-                    src="/photos/products/2021-12-15 (15).jpg"
-                    alt="Crystal collection"
-                    className="w-full h-full object-cover"
-                  />
-                </motion.div>
-              </div>
-              <div className="space-y-4 pt-8">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="aspect-square rounded-lg overflow-hidden shadow-lg"
-                >
-                  <img
-                    src="/photos/products/2023-09-24 (11).jpg"
-                    alt="Vintage lighting"
-                    className="w-full h-full object-cover"
-                  />
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="aspect-square rounded-lg overflow-hidden shadow-lg"
-                >
-                  <img
-                    src="/photos/products/2024-08-02 (22).jpg"
-                    alt="Decorative accents"
-                    className="w-full h-full object-cover"
-                  />
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="mt-16 text-center"
-          >
-            <h3 className="text-2xl font-serif text-[#46392d] mb-4">
-              Visit Our Shop
-            </h3>
-            <p className="text-[#46392d]/80 max-w-2xl mx-auto">
-              Experience the charm of our carefully curated collection in person. Our knowledgeable 
-              staff is here to help you find the perfect pieces to enhance your space and bring your 
-              vision to life.
+        <h1 className="text-4xl font-serif text-[#46392d] mb-8 text-center">About The Vintage Cottage</h1>
+        
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-serif text-[#46392d] mb-4">Our Story</h2>
+            <p className="text-[#46392d]/80 leading-relaxed mb-6">
+              The Vintage Cottage is Pune's premier destination for exquisite antiques and vintage collectibles. 
+              Established with a passion for preserving history and beauty, we curate a unique collection of timeless pieces 
+              that tell stories of the past while adding elegance to modern spaces.
             </p>
-          </motion.div>
+            <p className="text-[#46392d]/80 leading-relaxed">
+              Our carefully selected inventory includes vintage furniture, crystal & glass pieces, decorative accents, 
+              lighting fixtures, mirrors, tableware, wall art, antique books, and garden accessories. Each item in our 
+              collection is chosen for its historical significance, craftsmanship, and aesthetic appeal.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-serif text-[#46392d] mb-4">Our Mission</h2>
+            <p className="text-[#46392d]/80 leading-relaxed">
+              We are dedicated to:
+            </p>
+            <ul className="list-disc list-inside text-[#46392d]/80 leading-relaxed space-y-2 mt-4">
+              <li>Preserving and sharing the beauty of antique craftsmanship</li>
+              <li>Helping our clients find unique pieces that tell their own stories</li>
+              <li>Supporting sustainable decorating through the reuse of quality vintage items</li>
+              <li>Building a community of antique enthusiasts and collectors</li>
+              <li>Providing expert guidance and authentication for vintage pieces</li>
+            </ul>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-serif text-[#46392d] mb-4">Visit Us</h2>
+            <p className="text-[#46392d]/80 leading-relaxed mb-4">
+              Experience our collection in person at our charming location in Pune. Our knowledgeable staff is ready to 
+              assist you in finding the perfect piece for your space.
+            </p>
+            <div className="text-[#46392d]/80">
+              <p className="font-medium">Business Hours:</p>
+              <p>Monday - Saturday: 10:00 AM - 7:00 PM</p>
+              <p>Sunday: By Appointment Only</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-serif text-[#46392d] mb-4">Services</h2>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[#46392d]/80">
+              <li className="flex items-start space-x-2">
+                <svg className="w-6 h-6 text-[#46392d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Expert Authentication</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <svg className="w-6 h-6 text-[#46392d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Restoration Services</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <svg className="w-6 h-6 text-[#46392d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Antique Appraisals</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <svg className="w-6 h-6 text-[#46392d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Custom Sourcing</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 

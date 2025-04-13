@@ -1,48 +1,55 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { useNotifications } from '../context/NotificationContext';
-import SellItemForm from '../components/SellItemForm';
 import NotificationIcon from '../components/NotificationIcon';
 import PaymentModal from '../components/PaymentModal';
 import Cart from '../components/Cart';
+import OfferModal from '../components/OfferModal';
+import ContactOwnerModal from '../components/ContactOwnerModal';
 
 const Shop: React.FC = () => {
-  const { products, categories, addSubmission } = useProducts();
+  const navigate = useNavigate();
+  const { products, categories } = useProducts();
   const { addToCart, getItemCount, getCartTotal, clearCart } = useCart();
   const { addNotification } = useNotifications();
+
+  // Add logging to see products being received
+  console.log('Shop component products:', products);
+
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showCart, setShowCart] = useState(false);
-  const [showSellForm, setShowSellForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<null | { id: string; title: string; price: number }>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isCartCheckout, setIsCartCheckout] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [selectedProductForContact, setSelectedProductForContact] = useState<null | { title: string }>(null);
+  const [selectedProductForOffer, setSelectedProductForOffer] = useState<null | {
+    id: string;
+    title: string;
+    price: number;
+    images: string[];
+    description: string;
+  }>(null);
+  const [currentImageIndices, setCurrentImageIndices] = useState<{ [key: string]: number }>({});
 
   const filteredProducts = selectedCategory === 'All'
     ? products
     : products.filter(product => product.category === selectedCategory);
 
-  const handleSellSubmit = (formData: FormData) => {
-    const submission = {
-      title: formData.get('title') as string,
-      description: formData.get('description') as string,
-      price: parseFloat(formData.get('price') as string),
-      category: formData.get('category') as string,
-      images: JSON.parse(formData.get('images') as string),
-      phone: formData.get('phone') as string,
-      address: formData.get('address') as string,
-    };
-    
-    addSubmission(submission);
-    setShowSellForm(false);
-    addNotification('Thank you for submitting your item! We will review it and get back to you soon.', 'success', false);
-    // Add notification for admin
-    addNotification(`New antique submission received: "${submission.title}"`, 'info', true);
-  };
+  // Add logging for filtered products
+  console.log('Filtered products:', filteredProducts);
 
-  const handleAddToCart = (product: { id: string; title: string; price: number; image: string }) => {
-    addToCart(product);
+  const handleAddToCart = (product: { id: string; title: string; price: number; images: string[] }) => {
+    addToCart({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.images && product.images.length > 0 ? product.images[0] : '/placeholder.svg'
+    });
     addNotification(`${product.title} added to cart!`, 'success', false);
   };
 
@@ -60,6 +67,26 @@ const Shop: React.FC = () => {
     }
     setSelectedProduct(null);
     setIsCartCheckout(false);
+  };
+
+  const handleProductClick = (productId: string) => {
+    navigate(`/shop/product/${productId}`);
+  };
+
+  const handlePrevImage = (e: React.MouseEvent, productId: string, images: string[]) => {
+    e.stopPropagation();
+    setCurrentImageIndices(prev => ({
+      ...prev,
+      [productId]: prev[productId] > 0 ? prev[productId] - 1 : images.length - 1
+    }));
+  };
+
+  const handleNextImage = (e: React.MouseEvent, productId: string, images: string[]) => {
+    e.stopPropagation();
+    setCurrentImageIndices(prev => ({
+      ...prev,
+      [productId]: prev[productId] < images.length - 1 ? prev[productId] + 1 : 0
+    }));
   };
 
   return (
@@ -83,12 +110,6 @@ const Shop: React.FC = () => {
                   {getItemCount()}
                 </span>
               )}
-            </button>
-            <button
-              onClick={() => setShowSellForm(true)}
-              className="px-6 py-3 bg-[#46392d] text-[#F5F1EA] rounded-md hover:bg-[#46392d]/90 transition-colors duration-300 font-serif"
-            >
-              Sell Your Antiques
             </button>
           </div>
         </div>
@@ -120,24 +141,71 @@ const Shop: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="bg-white rounded-lg shadow-md overflow-hidden group"
+              className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer"
+              onClick={() => handleProductClick(product.id)}
             >
               <div className="relative overflow-hidden">
                 <img
-                  src={product.image}
+                  src={product.images && product.images.length > 0 
+                    ? product.images[currentImageIndices[product.id] || 0] 
+                    : '/placeholder.svg'}
                   alt={product.title}
                   className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
                 />
+                {product.images && product.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePrevImage(e, product.id, product.images);
+                      }}
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition-opacity opacity-0 group-hover:opacity-100 z-10"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#46392d]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleNextImage(e, product.id, product.images);
+                      }}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition-opacity opacity-0 group-hover:opacity-100 z-10"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#46392d]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                      {product.images.map((_, index) => (
+                        <div
+                          key={index}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            index === (currentImageIndices[product.id] || 0)
+                              ? 'bg-white'
+                              : 'bg-white/50'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-serif text-[#46392d] mb-2">{product.title}</h3>
-                <p className="text-[#46392d]/70 mb-4">{product.description}</p>
-                <div className="flex justify-between items-center">
+                <p className="text-[#46392d]/70 mb-4">{product.subject}</p>
+                <div className="flex flex-col space-y-3">
                   <span className="text-xl font-medium text-[#46392d]">
-                    ${product.price}
+                    ₹{product.price}
                   </span>
-                  <div className="space-x-2">
+                  <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleAddToCart(product)}
                       className="bg-gray-100 text-[#46392d] px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
@@ -153,30 +221,36 @@ const Shop: React.FC = () => {
                     >
                       Buy Now
                     </button>
+                    <button
+                      className="bg-[#46392d]/10 text-[#46392d] px-4 py-2 rounded-md hover:bg-[#46392d]/20 transition-colors"
+                      onClick={() => {
+                        setSelectedProductForOffer({
+                          id: product.id,
+                          title: product.title,
+                          price: product.price,
+                          images: product.images,
+                          description: product.description
+                        });
+                        setShowOfferModal(true);
+                      }}
+                    >
+                      Your Offer
+                    </button>
+                    <button
+                      className="bg-[#46392d]/10 text-[#46392d] px-4 py-2 rounded-md hover:bg-[#46392d]/20 transition-colors"
+                      onClick={() => {
+                        setSelectedProductForContact(product);
+                        setShowContactModal(true);
+                      }}
+                    >
+                      Contact Owner
+                    </button>
                   </div>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
-
-        {/* Sell Modal */}
-        {showSellForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#F5F1EA] p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-serif text-[#46392d]">Sell Your Antiques</h2>
-                <button
-                  onClick={() => setShowSellForm(false)}
-                  className="text-[#46392d] hover:text-[#46392d]/70"
-                >
-                  ✕
-                </button>
-              </div>
-              <SellItemForm onSubmit={handleSellSubmit} />
-            </div>
-          </div>
-        )}
 
         <Cart
           isOpen={showCart}
@@ -196,6 +270,24 @@ const Shop: React.FC = () => {
             onPaymentComplete={handlePaymentComplete}
           />
         )}
+
+        <OfferModal
+          isOpen={showOfferModal}
+          onClose={() => {
+            setShowOfferModal(false);
+            setSelectedProductForOffer(null);
+          }}
+          product={selectedProductForOffer}
+        />
+
+        <ContactOwnerModal
+          isOpen={showContactModal}
+          onClose={() => {
+            setShowContactModal(false);
+            setSelectedProductForContact(null);
+          }}
+          productTitle={selectedProductForContact?.title || ''}
+        />
       </div>
     </div>
   );

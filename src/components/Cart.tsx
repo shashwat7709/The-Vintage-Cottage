@@ -40,7 +40,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout }) => {
                   />
                   <div className="flex-1">
                     <h3 className="font-medium text-[#46392d]">{item.title}</h3>
-                    <p className="text-[#46392d] font-bold">${item.price.toFixed(2)}</p>
+                    <p className="text-[#46392d] font-bold">₹{item.price.toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
